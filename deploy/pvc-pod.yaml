@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: example-filesystem
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: platform-ext4
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: example-block
+spec:
+  accessModes: [ReadWriteOnce]
+  volumeMode: Block
+  storageClassName: platform-ext4
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: storage-example
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37.0
+      command: [sh, -c, 'sleep 3600']
+      volumeMounts:
+        - name: data
+          mountPath: /data
+      volumeDevices:
+        - name: block
+          devicePath: /dev/data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: example-filesystem
+    - name: block
+      persistentVolumeClaim:
+        claimName: example-block

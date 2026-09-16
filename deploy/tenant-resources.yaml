@@ -1,0 +1,40 @@
+# Apply only to the tenant Kubernetes API after platform/controller provisioning.
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  name: storage.example.cloud
+spec:
+  attachRequired: true
+  podInfoOnMount: true
+  fsGroupPolicy: None
+  volumeLifecycleModes: [Persistent]
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: platform-ext4
+provisioner: storage.example.cloud
+parameters:
+  type: standard
+  csi.storage.k8s.io/fstype: ext4
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: topology.storage.example.cloud/region
+        values: [ru-1]
+      - key: topology.storage.example.cloud/zone
+        values: [ru-1a, ru-1b]
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: platform-xfs
+provisioner: storage.example.cloud
+parameters:
+  type: standard
+  csi.storage.k8s.io/fstype: xfs
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer

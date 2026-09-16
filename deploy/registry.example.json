@@ -1,0 +1,14 @@
+{
+  "principals": {
+    "spiffe://storage.example.cloud/controller/cluster-a": {"Role":"controller","TenantID":"tenant-a","ClusterID":"cluster-a"},
+    "spiffe://storage.example.cloud/controller/cluster-b": {"Role":"controller","TenantID":"tenant-b","ClusterID":"cluster-b"},
+    "spiffe://storage.example.cloud/node/vm-a": {"Role":"node","TenantID":"tenant-a","ClusterID":"cluster-a","InstanceID":"vm-a"},
+    "spiffe://storage.example.cloud/node/vm-b": {"Role":"node","TenantID":"tenant-b","ClusterID":"cluster-b","InstanceID":"vm-b"}
+  },
+  "instances": {
+    "vm-a": {"ID":"vm-a","TenantID":"tenant-a","ClusterID":"cluster-a","Region":"ru-1","Zone":"ru-1a","Active":true},
+    "vm-a2": {"ID":"vm-a2","TenantID":"tenant-a","ClusterID":"cluster-a","Region":"ru-1","Zone":"ru-1a","Active":true},
+    "vm-b": {"ID":"vm-b","TenantID":"tenant-b","ClusterID":"cluster-b","Region":"ru-1","Zone":"ru-1a","Active":true}
+  },
+  "zones": {"ru-1":["ru-1a","ru-1b"]}
+}

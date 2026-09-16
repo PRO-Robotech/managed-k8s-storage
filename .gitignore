@@ -1,0 +1,6 @@
+/bin/
+/run/
+/coverage.out
+*.db
+*.key
+*.pem

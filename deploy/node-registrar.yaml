@@ -1,0 +1,42 @@
+# Node agent itself runs as platform-managed VM service in this example.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: platform-csi-node-registrar
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: platform-csi-node-registrar
+  template:
+    metadata:
+      labels:
+        app: platform-csi-node-registrar
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: registrar
+          image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.18.0
+          args:
+            - --csi-address=/csi/csi.sock
+            - --kubelet-registration-path=/var/lib/kubelet/plugins/storage.example.cloud/csi.sock
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - {name: plugin, mountPath: /csi}
+            - {name: registration, mountPath: /registration}
+      volumes:
+        - name: plugin
+          hostPath:
+            path: /var/lib/kubelet/plugins/storage.example.cloud
+            type: Directory
+        - name: registration
+          hostPath:
+            path: /var/lib/kubelet/plugins_registry
+            type: Directory

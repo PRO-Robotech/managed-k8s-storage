@@ -1,0 +1,73 @@
+# TEMPLATE: apply ONLY in platform/infra cluster, never in tenant cluster.
+# Supply a built image and platform-managed Secrets before deployment.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: platform-csi-controller-cluster-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: platform-csi-controller-cluster-a
+  template:
+    metadata:
+      labels:
+        app: platform-csi-controller-cluster-a
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: controller
+          image: managed-k8s-storage:prototype
+          command: [/usr/local/bin/csi-controller]
+          args:
+            - --socket=/csi/controller.sock
+            - --api=https://storage-api.platform.example:9443
+            - --ca=/identity/ca.pem
+            - --cert=/identity/tls.crt
+            - --key=/identity/tls.key
+          volumeMounts:
+            - {name: socket, mountPath: /csi}
+            - {name: identity, mountPath: /identity, readOnly: true}
+        - name: provisioner
+          image: registry.k8s.io/sig-storage/csi-provisioner:v6.3.0
+          args:
+            - --csi-address=/csi/controller.sock
+            - --kubeconfig=/tenant/kubeconfig
+            - --leader-election
+            - --leader-election-namespace=kube-system
+            - --strict-topology
+            - --extra-create-metadata
+          volumeMounts:
+            - {name: socket, mountPath: /csi}
+            - {name: tenant-api, mountPath: /tenant, readOnly: true}
+        - name: attacher
+          image: registry.k8s.io/sig-storage/csi-attacher:v4.13.0
+          args:
+            - --csi-address=/csi/controller.sock
+            - --kubeconfig=/tenant/kubeconfig
+            - --leader-election
+            - --leader-election-namespace=kube-system
+          volumeMounts:
+            - {name: socket, mountPath: /csi}
+            - {name: tenant-api, mountPath: /tenant, readOnly: true}
+        - name: resizer
+          image: registry.k8s.io/sig-storage/csi-resizer:v2.2.1
+          args:
+            - --csi-address=/csi/controller.sock
+            - --kubeconfig=/tenant/kubeconfig
+            - --leader-election
+            - --leader-election-namespace=kube-system
+          volumeMounts:
+            - {name: socket, mountPath: /csi}
+            - {name: tenant-api, mountPath: /tenant, readOnly: true}
+      volumes:
+        - name: socket
+          emptyDir: {}
+        - name: identity
+          secret:
+            secretName: platform-csi-controller-cluster-a-identity
+            defaultMode: 0400
+        - name: tenant-api
+          secret:
+            secretName: tenant-cluster-a-kubeconfig
+            defaultMode: 0400

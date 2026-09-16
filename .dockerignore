@@ -1,0 +1,7 @@
+.git
+run
+bin
+coverage.out
+*.db
+*.pem
+*.key

@@ -1,0 +1,19 @@
+# Template for an isolated worker VM with platform-provisioned identity and devices.
+# No tenant Kubernetes API credentials. Linux backend is experimental.
+[Unit]
+Description=Platform CSI Node Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/csi-node --host-mode=linux --api=https://storage-api.platform.example:9443 --ca=/etc/platform-csi/ca.pem --cert=/etc/platform-csi/tls.crt --key=/etc/platform-csi/tls.key --journal=/var/lib/platform-csi/node.db
+Restart=on-failure
+RestartSec=5
+UMask=0077
+# Must share the kubelet mount namespace.
+PrivateMounts=no
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
